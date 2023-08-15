@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { SelectedCustomerDispatchContext } from './context/customerContext';
 import { ROUTE_CAPTURE_RECURRING, ROUTE_CAPTURE_AND_CHARGE, ROUTE_NEW_CUSTOMER } from './routes';
 import { BASE_URL } from './baseUrl';
-function Home() {
+const Home = () => {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
