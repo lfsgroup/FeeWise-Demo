@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 
 import { SelectedCustomerContext } from './context/customerContext';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from './baseUrl';
 const CaptureRecurringContainer = () => {
   // grab setupFeewise from the window
   const setupFeewise = window.setupFeewise;
@@ -11,7 +12,7 @@ const CaptureRecurringContainer = () => {
   const [feeWiseApi, setFeeWiseApi] = useState(null);
   const customerStore = useContext(SelectedCustomerContext);
   const navigate = useNavigate();
-  const [paymentResponse, setPaymentResponse] = useState('');
+  const [captureResponse, setCaptureResponse] = useState('');
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [feeWiseUri, setFeeWiseUri] = useState('');
   
@@ -24,10 +25,10 @@ const CaptureRecurringContainer = () => {
     let response;
     try {
       response = await feeWiseApi?.submit();
-      setPaymentResponse(response); 
+      setCaptureResponse(response); 
     } catch (error) {
       console.log(error);
-      setPaymentResponse(error); 
+      setCaptureResponse(error); 
     }
     
     setDisableSubmit(false);
@@ -63,7 +64,7 @@ const CaptureRecurringContainer = () => {
     };
 
     try {
-      const r = await fetch('http://localhost:4242/create-payment-token', {
+      const r = await fetch(`${BASE_URL}/create-payment-token`, {
         method: 'POST',
         body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'MultiUse' }),
       })
@@ -94,7 +95,7 @@ const CaptureRecurringContainer = () => {
       <Capture
         customer={customerStore.customer}
         disableSubmit={disableSubmit}
-        paymentResponse={paymentResponse}
+        captureResponse={captureResponse}
         cancelAddNew={cancelAddNew}
         handleFeeWiseSubmit={handleFeeWiseSubmit}
       />

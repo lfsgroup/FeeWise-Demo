@@ -3,8 +3,8 @@ import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelectedCustomerDispatchContext } from './context/customerContext';
 import { ROUTE_CAPTURE_RECURRING, ROUTE_CAPTURE_AND_CHARGE, ROUTE_NEW_CUSTOMER } from './routes';
-
-function Home() {
+import { BASE_URL } from './baseUrl';
+const Home = () => {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -17,14 +17,14 @@ function Home() {
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [paymentResponse, setPaymentResponse] = useState('');
   const fetchCustomers = () => {
-    fetch('http://localhost:4242/customers').then(async (r) => {
+    fetch(`${BASE_URL}/customers`).then(async (r) => {
       const response = await r.json();
       setCustomers(response.customers);
     });
   };
 
   const fetchAccounts = () => {
-    fetch('http://localhost:4242/accounts').then(async (r) => {
+    fetch(`${BASE_URL}/accounts`).then(async (r) => {
       const accounts = await r.json();
       const accountsArr = accounts.office_accounts.concat(accounts.trust_accounts);
 
@@ -86,7 +86,7 @@ function Home() {
       amount,
       settlementAccountId: selectedAccount,
     };
-    fetch('http://localhost:4242/create-charge', {
+    fetch(`${BASE_URL}/create-charge`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }).then(async (r) => {

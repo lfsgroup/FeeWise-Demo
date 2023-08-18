@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { SelectedCustomerContext } from './context/customerContext';
 import { useNavigate } from 'react-router-dom';
 import { ROUTE_NEW_CUSTOMER } from './routes';
-
+import { BASE_URL } from './baseUrl';
 const CaptureAndChargeContainer = () => {
   const setupFeewise = window.setupFeewise;
   const [feeWiseApi, setFeeWiseApi] = useState(null);
@@ -19,6 +19,7 @@ const CaptureAndChargeContainer = () => {
   const [selectedAccount, setSelectedAccount] = useState('');
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [feeWiseUri, setFeeWiseUri] = useState('');
+  
   //change this to test different dynamic styles
   const feeWiseOptions = hostedFieldStyles.paymentPortal;
 
@@ -56,7 +57,7 @@ const CaptureAndChargeContainer = () => {
       amount,
       settlementAccountId: selectedAccount,
     };
-    fetch('http://localhost:4242/create-charge', {
+    fetch(`${BASE_URL}/create-charge`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }).then(async (r) => {
@@ -93,7 +94,7 @@ const CaptureAndChargeContainer = () => {
       store_payment_methods: ['Card', 'DirectDebit'],
     };
 
-    fetch('http://localhost:4242/create-payment-token', {
+    fetch(`${BASE_URL}/create-payment-token`, {
       method: 'POST',
       body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'SingleUse' }),
     }).then(async (r) => {
@@ -113,7 +114,7 @@ const CaptureAndChargeContainer = () => {
       return;
     }
     setCustomer(customerStore.customer);
-    fetch('http://localhost:4242/accounts').then(async (r) => {
+    fetch(`${BASE_URL}/accounts`).then(async (r) => {
       const accounts = await r.json();
       const accountsArr = accounts.office_accounts.concat(accounts.trust_accounts);
 
@@ -124,7 +125,6 @@ const CaptureAndChargeContainer = () => {
   }, [customerStore.customer]);
 
   useEffect(() => {
-    console.log('mount effect')
     try {
       new URL(feeWiseUri);
       mountFeeWise(feeWiseUri);
