@@ -41,8 +41,8 @@ func handleFunc(method, path string, h http.HandlerFunc) {
 }
 
 func withMethod(m string, h http.HandlerFunc) http.HandlerFunc {
-	return withHeaders(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != m {
+	return withCors(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != m && r.Method != "OPTIONS" {
 			writeJSONError(w, nil, http.StatusMethodNotAllowed)
 			return
 		}
@@ -50,10 +50,16 @@ func withMethod(m string, h http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-func withHeaders(h http.HandlerFunc) http.HandlerFunc {
+func withCors(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*") //don't do this for an actual app server pls, cbf implementing options
-		h(w, r)
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return;
+		} else {
+			h(w, r)
+		}
 	}
 }
 
@@ -86,3 +92,4 @@ func writeJSONErrorMessage(w http.ResponseWriter, message string, code int) {
 	}
 	writeJSONError(w, resp, code)
 }
+

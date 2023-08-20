@@ -67,6 +67,9 @@ const CaptureRecurringContainer = () => {
       const r = await fetch(`${BASE_URL}/create-payment-token`, {
         method: 'POST',
         body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'MultiUse' }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
       response = await r.json();
       setFeeWiseUri(response.capture_uri);

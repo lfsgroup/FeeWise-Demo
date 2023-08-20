@@ -90,7 +90,7 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 	}
 
 	feeWiseChargeRequest := FeeWiseChargeRequest{
-		FirmID:              "facade00-0000-4000-a000-000000000000",
+		FirmID:              p.FirmId,
 		Amount:              chargeRequest.Amount.String(),
 		SettlementAccountId: chargeRequest.SettlementAccountID,
 	}
