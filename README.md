@@ -18,7 +18,7 @@ Written in React using Create React App, the app provides the following function
 FeeWise partner api credentials are private, so the FeeWise partner api should <u>never</u> be called from a browser.
 
 The following servers are provided for reference, and simply act as a passthrough for the partner api:
-- .NET 7 (coming soon)
+- .NET 7
     - utilises the FeeWise client library for consuming the partner api: https://www.nuget.org/packages/FeeWise 
 - Go
     - illustrates a more manual approach, no client library available for Go at this time
@@ -26,7 +26,7 @@ The following servers are provided for reference, and simply act as a passthroug
 ### Running
 - configure and run your choice of server:
     - [Go](/server/go/README.md)
-    - [.NET7 - coming soon]()
+    - [.NET 7](/server/dotnet/README.md)
 
 - run the client app:
     - [React](/client/README.md)
