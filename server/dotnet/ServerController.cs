@@ -18,7 +18,7 @@ public class ServerController : ControllerBase
 
     [HttpGet]
     [Route("config")]
-    public async Task<ActionResult> GetConfig()
+    public ActionResult GetConfig()
     {
         return Ok(_feeWiseProxy.GetConfig());
     }
