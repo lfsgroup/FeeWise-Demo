@@ -60,6 +60,9 @@ const CaptureAndChargeContainer = () => {
     fetch(`${BASE_URL}/create-charge`, {
       method: 'POST',
       body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then(async (r) => {
       const response = await r.json();
       setChargeResponse(response);
@@ -97,6 +100,9 @@ const CaptureAndChargeContainer = () => {
     fetch(`${BASE_URL}/create-payment-token`, {
       method: 'POST',
       body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'SingleUse' }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then(async (r) => {
       response = await r.json();
       setFeeWiseUri(response.capture_uri)

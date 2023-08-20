@@ -75,7 +75,6 @@ type CreatePaymentTokenResponse struct {
 }
 
 type CreateChargeRequest struct {
-	CustomerID          string          `json:"customerId"`
 	PaymentMethodID     string          `json:"paymentMethodID"`
 	Amount              decimal.Decimal `json:"amount"`
 	SettlementAccountID string          `json:"settlementAccountId"`
