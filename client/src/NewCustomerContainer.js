@@ -2,11 +2,14 @@ import NewCustomer from './NewCustomer';
 import { useContext, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { SelectedCustomerDispatchContext } from './context/customerContext';
-import { ROUTE_CAPTURE_RECURRING } from './routes';
+import CaptureRecurringContainer from './CaptureRecurringContainer';
 import { useNavigate } from 'react-router-dom';
+
 const NewCustomerContainer = () => {
   const navigate = useNavigate();
   const dispatch = useContext(SelectedCustomerDispatchContext);
+  const [selectedTab, setSelectedTab] = useState('customer-detail'); // customer-detail, card-detail
+
   const [newCustomer, setNewCustomer] = useState({
     first_name: '',
     last_name: '',
@@ -28,8 +31,8 @@ const NewCustomerContainer = () => {
     dispatch({
       type: 'update',
       customer: newCustomerRequest,
-    }); 
-    navigate(`../${ROUTE_CAPTURE_RECURRING}`)
+    });
+    setSelectedTab('card-detail');
   };
 
   const handleNewCustomerChange = (e) => {
@@ -53,13 +56,39 @@ const NewCustomerContainer = () => {
     }
     setNewCustomer(cust);
   };
+
+  const goHome = async () => {
+    navigate('/');
+  };
+
+  const gotoCustomerDetails =()=>{
+    setSelectedTab("customer-detail")
+  }
   return (
     <>
-        <NewCustomer
-          handleNewCustomerSubmit={handleNewCustomerSubmit}
-          handleNewCustomerChange={handleNewCustomerChange}
-          newCustomer={newCustomer}
-        />
+      <main  id="sb-main">
+        <div>
+          {selectedTab === 'customer-detail' && (
+            <div>
+              <NewCustomer
+                handleNewCustomerSubmit={handleNewCustomerSubmit}
+                handleNewCustomerChange={handleNewCustomerChange}
+                newCustomer={newCustomer}
+              />
+            </div>
+          )}
+          {selectedTab === 'card-detail' && (
+            <div>
+              <CaptureRecurringContainer gotoCustomerDetails={gotoCustomerDetails}/>
+            </div>
+          )}
+        </div>
+        <div>
+          <button className="btn-secondary" onClick={goHome}>
+            Cancel <span style={{fontSize : 20, lineHeight: "15px", verticalAlign: 'middle', marginLeft: 10}}>&#10539;</span>
+          </button>
+        </div>
+      </main>
     </>
   );
 };

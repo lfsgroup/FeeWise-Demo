@@ -3,8 +3,12 @@ import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelectedCustomerDispatchContext } from './context/customerContext';
 import { ROUTE_CAPTURE_RECURRING, ROUTE_CAPTURE_AND_CHARGE, ROUTE_NEW_CUSTOMER } from './routes';
+import Loader from './loader';
+import CaptureRecurringContainer from './CaptureRecurringContainer';
+import CaptureAndChargeContainer from './CaptureAndChargeContainer';
 import { BASE_URL } from './baseUrl';
-const Home = () => {
+
+function Home() {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -16,10 +20,14 @@ const Home = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [paymentResponse, setPaymentResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('charge'); // charge, add-payment-method, single-charge
   const fetchCustomers = () => {
+    setIsLoading(true);
     fetch(`${BASE_URL}/customers`).then(async (r) => {
       const response = await r.json();
       setCustomers(response.customers);
+      setIsLoading(false);
     });
   };
 
@@ -33,8 +41,8 @@ const Home = () => {
   };
 
   useEffect(() => {
-    setDisableSubmit(!amount || !selectedAccount || !selectedPaymentMethod || isSubmitting)
-  }, [amount, selectedAccount, selectedPaymentMethod, isSubmitting])
+    setDisableSubmit(!amount || !selectedAccount || !selectedPaymentMethod || isSubmitting);
+  }, [amount, selectedAccount, selectedPaymentMethod, isSubmitting]);
 
   useEffect(() => {
     dispatchSelectedCustomer({
@@ -89,9 +97,6 @@ const Home = () => {
     fetch(`${BASE_URL}/create-charge`, {
       method: 'POST',
       body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
-      },
     }).then(async (r) => {
       const response = await r.json();
       setIsSubmitting(false);
@@ -100,90 +105,161 @@ const Home = () => {
     });
   };
 
+  const cancelSelection = () => {
+    setSelectedCustomer(null);
+    setPaymentResponse('');
+  };
+
+  const selectTab=(tabName)=>{
+    return ()=>{
+      setSelectedTab(tabName);
+      setPaymentResponse('');
+
+    }
+  }
+
   return (
-    <main>
+    <main id="sb-main">
       <div>
-        <div>
-          <label className="label">
-            <b>Select Customer</b>
-          </label>
-          <select onChange={handleSelectedCustomerId}>
-            <option key="default" value="default">
-              Add a new customer...
-            </option>
-            {customers?.map((customer) => (
-              <option key={customer.debtor.debtor_id} value={customer.debtor.debtor_id}>
-                {customer.debtor.name}
-              </option>
-            ))}
-          </select>
+        <button className="add-new-customer" onClick={handleAddNewCustomer}>
+          Add a new customer
+        </button>
+        <h1 className="sb-form-title"> Customers </h1>
+        <div className="sb-form">
+          {isLoading && (
+            <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+              <Loader />
+              <div style={{ fontSize: '0.8rem', color: '#666' }}>Loading customers...</div>
+            </div>
+          )}
+          {!isLoading && (
+            <label className="label">
+              Select Customer
+              <select
+                onChange={handleSelectedCustomerId}
+                style={{ fontSize: '1rem', padding: 8, minWidth: 300 }}
+                value={selectedCustomer?.debtor?.debtor_id || ''}
+              >
+                <option key="default" value="default">
+                  -- select customer --
+                </option>
+                {customers?.map((customer) => (
+                  <option key={customer.debtor.debtor_id} value={customer.debtor.debtor_id}>
+                    {customer.debtor.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
+
         {selectedCustomer && (
           <div>
-            <h1>
-              {selectedCustomer?.debtor?.first_name} {selectedCustomer?.debtor?.last_name}
-            </h1>
-            {!selectedCustomer.payment_methods ? (
-              <div>
-                <p>No payment methods!!</p>
-              </div>
-            ) : (
-              <div>
-                <div>
-                  <label className="label">
-                    <b>Payment method</b>
-                  </label>
-                  <select onChange={handleSelectedPaymentMethod}>
-                    <option key="default" value="default">
-                      Select payment method...
-                    </option>
-                    {selectedCustomer.payment_methods.map((paymentMethod) => (
-                      <option key={paymentMethod.payment_token} value={paymentMethod.payment_token}>
-                        {paymentMethod.scheme
-                          ? `${paymentMethod.scheme} ending in ${paymentMethod.scheme_partial_number}`
-                          : 'US Bank Account'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <label className="label">
-                  <b>Settlement Account</b>
-                </label>
-                <select onChange={handleSelectedAccount}>
-                  <option key="default" value="default">
-                    Select bank account...
-                  </option>
-                  {bankAccounts.map((account) => (
-                    <option key={account.account_id} value={account.account_id}>
-                      {account.account_name}
-                    </option>
-                  ))}
-                </select>
+            <div className="sb-tab-list">
+              <span
+                className={`sb-tab ${selectedTab === 'charge' ? 'selected' : ''}`}
+                onClick={selectTab('charge')}
+              >
+                Charge
+              </span>
+              <span
+                className={`sb-tab ${selectedTab === 'add-payment-method' ? 'selected' : ''}`}
+                onClick={selectTab('add-payment-method')}
+              >
+                Add Payment Method{' '}
+              </span>
+              <span
+                className={`sb-tab ${selectedTab === 'single-charge' ? 'selected' : ''}`}
+                onClick={selectTab('single-charge')}
+              >
+                Add payment method and Charge
+              </span>
+            </div>
 
-                <label>
-                  <b>Amount</b>
-                </label>
-                <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
-                <button
-                  onClick={handleChargePaymentMethod}
-                  disabled={disableSubmit}
-                >
-                  Charge ${amount}
-                </button>
+            {selectedTab === 'charge' && (
+              <div className="sb-form payment-method-form">
+                <h2 className="sb-form-title">
+                  {selectedCustomer?.debtor?.first_name} {selectedCustomer?.debtor?.last_name}
+                </h2>
+                <p className="sb-form-titleInfo">Select payment method, account, and amount to charge</p>
+                {!selectedCustomer.payment_methods ? (
+                  <div>
+                    <p>No payment methods!!</p>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="label">
+                      <b>Payment method</b>
+                      <select onChange={handleSelectedPaymentMethod}>
+                        <option key="default" value="default">
+                          Select payment method...
+                        </option>
+                        {selectedCustomer.payment_methods.map((paymentMethod) => (
+                          <option key={paymentMethod.payment_token} value={paymentMethod.payment_token}>
+                            {paymentMethod.scheme
+                              ? `${paymentMethod.scheme} ending in ${paymentMethod.scheme_partial_number}`
+                              : 'US Bank Account'}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="label">
+                      <b>Settlement Account</b>
+
+                      <select onChange={handleSelectedAccount}>
+                        <option key="default" value="default">
+                          Select bank account...
+                        </option>
+                        {bankAccounts.map((account) => (
+                          <option key={account.account_id} value={account.account_id}>
+                            {account.account_name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      <b>Amount</b>
+                      <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
+                    </label>
+                    <button onClick={handleChargePaymentMethod} disabled={disableSubmit}>
+                      Charge ${amount || 0} now
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-            <button onClick={handleRouteCaptureRecurring}>Add a payment method for future use</button>
-            <button onClick={handleRouteCharge}>Make a single charge to a new payment method</button>
+
+            {selectedTab === 'add-payment-method' && (
+              <div>
+                <CaptureRecurringContainer />
+              </div>
+            )}
+            {selectedTab === 'single-charge' && (
+              <div>
+                <CaptureAndChargeContainer />
+              </div>
+            )}
           </div>
         )}
-        <button onClick={handleAddNewCustomer}>Add a new customer</button>
+
         {paymentResponse && (
-          <div className="payment-result">
-            <h2>Charge Result</h2>
-            <pre>{JSON.stringify(paymentResponse, undefined, 2)}</pre>
+          <div className="payment-result sb-result-box">
+            <p>Charge Result: successfully charged</p>
+            <code>
+              <pre>{JSON.stringify(paymentResponse, undefined, 2)}</pre>
+            </code>
           </div>
         )}
       </div>
+      {selectedCustomer && (
+        <div>
+          <button onClick={cancelSelection} className="btn-secondary">
+            Cancel
+            <span style={{ fontSize: 20, lineHeight: '15px', verticalAlign: 'middle', marginLeft: 10 }}>&#10539;</span>
+          </button>
+        </div>
+      )}
     </main>
   );
 }

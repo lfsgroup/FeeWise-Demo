@@ -1,10 +1,18 @@
-const NewCustomer = ({ handleNewCustomerChange, handleNewCustomerSubmit, newCustomer }) => {
+const NewCustomer = ({ handleNewCustomerChange, handleNewCustomerSubmit, newCustomer, gotoCustomerDetails }) => {
   return (
-    <div>
-      <h2>Customer details</h2>
+    <div className="sb-form new-customer-form">
+      <h2 className="sb-form-title">New customer details</h2>
+      <div style={{ margin: '0px 0 20px 0', fontSize: '0.8rem' }}> Please fill out customer details below.</div>
+
       <label>
         First Name:
-        <input name="firstName" type="text" onChange={handleNewCustomerChange} value={newCustomer.first_name} required />
+        <input
+          name="firstName"
+          type="text"
+          onChange={handleNewCustomerChange}
+          value={newCustomer.first_name}
+          required
+        />
       </label>
       <label>
         Last Name:
@@ -18,7 +26,10 @@ const NewCustomer = ({ handleNewCustomerChange, handleNewCustomerSubmit, newCust
         Contact Number:
         <input name="contact" type="text" onChange={handleNewCustomerChange} value={newCustomer.contact} required />
       </label>
-      <button onClick={handleNewCustomerSubmit}>Next</button>
+      <div style={{ display: 'flex', flexDirection: 'col', gap: 10 }}>
+        <button onClick={handleNewCustomerSubmit}>Next &#8594;</button>
+
+      </div>
     </div>
   );
 };
