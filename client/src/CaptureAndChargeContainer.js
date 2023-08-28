@@ -19,7 +19,7 @@ const CaptureAndChargeContainer = () => {
   const [selectedAccount, setSelectedAccount] = useState('');
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [feeWiseUri, setFeeWiseUri] = useState('');
-  
+  const [feeWiseValid, setFeeWiseValid] = useState(false);
   //change this to test different dynamic styles
   const feeWiseOptions = hostedFieldStyles.paymentPortal;
 
@@ -72,6 +72,9 @@ const CaptureAndChargeContainer = () => {
 
   const mountFeeWise = async (captureUri) => {
     const feeWise = await setupFeewise(captureUri, true, false, feeWiseOptions);
+    feeWise.on('formValidChange', (event) => {
+      setFeeWiseValid(event.complete);
+    });
     try {
       feeWise.mount('#feewise-iframe-wrapper');
     } catch (error) {
@@ -108,11 +111,10 @@ const CaptureAndChargeContainer = () => {
       setFeeWiseUri(response.capture_uri)
     });
 
-    // return response;
   };
   useEffect(() => {
-    setDisableSubmit(!amount || !selectedAccount);
-  }, [amount, selectedAccount]);
+    setDisableSubmit(!amount || !selectedAccount || !feeWiseValid);
+  }, [amount, selectedAccount, feeWiseValid]);
 
   useEffect(() => {
     if (!customerStore.customer) {
@@ -141,15 +143,13 @@ const CaptureAndChargeContainer = () => {
 
   return (
     <div>
-      <div>
-        <h1>
+      <div className="sb-form">
+        <h2 className="sb-form-title">
           {customer?.debtor?.first_name} {customer?.debtor?.last_name}
-        </h1>
-
+        </h2>
         <div>
           <label className="label">
-            <b>Settlement Account</b>
-          </label>
+            Settlement Account
           <select onChange={handleSelectedAccount}>
             <option key="default" value="default">
               Select bank account...
@@ -160,21 +160,20 @@ const CaptureAndChargeContainer = () => {
               </option>
             ))}
           </select>
+          </label>
 
           <label>
-            <b>Amount</b>
-          </label>
+          Amount:
           <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
+          </label>
         </div>
-      </div>
       <Capture
-        customer={customerStore.customer}
         disableSubmit={disableSubmit}
         captureResponse={captureResponse}
         chargeResponse={chargeResponse}
-        cancelAddNew={cancelAddNew}
         handleFeeWiseSubmit={handleFeeWiseSubmit}
-      />
+        />
+        </div>
     </div>
   );
 };

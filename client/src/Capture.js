@@ -1,40 +1,37 @@
 const Capture = ({
-  customer,
   disableSubmit,
   captureResponse,
   handleFeeWiseSubmit,
-  cancelAddNew,
   chargeResponse = null,
+  gotoCustomerDetails = undefined
 }) => {
   return (
     <div>
-      <h1>
-        Collecting payment method details for {customer?.debtor?.first_name} {customer?.debtor?.last_name}
-      </h1>
-
-      <div className="add-new-payment-method">
-        <button onClick={cancelAddNew}>Done</button>
+      <div className="sb-form add-new-payment-method">
+        <h2 className="sb-form-title">Add payment details</h2>
         <div id="feewise-iframe-wrapper" className="iframe-wrapper"></div>
-        {!captureResponse && (
-          <button onClick={handleFeeWiseSubmit} disabled={disableSubmit}>
+        {captureResponse && !captureResponse.error && (
+          <div className="payment-result sb-result-box">
+            <p>Capture Result: Added payment method successfully </p>
+            <pre>{JSON.stringify(captureResponse, undefined, 2)}</pre>
+          </div>
+        )}
+
+        {chargeResponse && (
+          <div className="payment-result sb-result-box">
+            <h3>Charge Result: successfully charged!</h3>
+            <pre>{JSON.stringify(chargeResponse, undefined, 2)}</pre>
+          </div>
+        )}
+        {!((captureResponse && !captureResponse.error) || chargeResponse ) && (
+          <div style={{ display: 'flex', flexDirection: 'col', gap: 10 }}>
+          {gotoCustomerDetails && (<button onClick={gotoCustomerDetails} className="btn-secondary">&#8592; Back</button>)}
+          <button onClick={handleFeeWiseSubmit} disabled={disableSubmit} style={{ display: 'inline-block' }}>
             Submit
           </button>
-        )}
+        </div>)}
+
       </div>
-
-      {captureResponse && (
-        <div className="payment-result">
-          <h2>Capture Result</h2>
-          <pre>{JSON.stringify(captureResponse, undefined, 2)}</pre>
-        </div>
-      )}
-
-      {chargeResponse && (
-        <div className="payment-result">
-          <h2>Charge Result</h2>
-          <pre>{JSON.stringify(chargeResponse, undefined, 2)}</pre>
-        </div>
-      )}
     </div>
   );
 };

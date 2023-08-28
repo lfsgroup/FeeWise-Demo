@@ -5,19 +5,18 @@ import { useContext, useEffect, useState } from 'react';
 import { SelectedCustomerContext } from './context/customerContext';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from './baseUrl';
-const CaptureRecurringContainer = () => {
+const CaptureRecurringContainer = ({gotoCustomerDetails}) => {
   // grab setupFeewise from the window
   const setupFeewise = window.setupFeewise;
-  
+
   const [feeWiseApi, setFeeWiseApi] = useState(null);
   const customerStore = useContext(SelectedCustomerContext);
   const navigate = useNavigate();
   const [captureResponse, setCaptureResponse] = useState('');
-  const [disableSubmit, setDisableSubmit] = useState(false);
+  const [disableSubmit, setDisableSubmit] = useState(true);
   const [feeWiseUri, setFeeWiseUri] = useState('');
-  
   //change this to test different dynamic styles
-  const feeWiseOptions = hostedFieldStyles.paymentPortal;
+  const feeWiseOptions = hostedFieldStyles.feeWise;
 
   const handleFeeWiseSubmit = async (e) => {
     console.log('handleFeeWiseSubmit');
@@ -25,12 +24,12 @@ const CaptureRecurringContainer = () => {
     let response;
     try {
       response = await feeWiseApi?.submit();
-      setCaptureResponse(response); 
+      setCaptureResponse(response);
     } catch (error) {
       console.log(error);
-      setCaptureResponse(error); 
+      setCaptureResponse(error);
     }
-    
+
     setDisableSubmit(false);
   };
 
@@ -39,7 +38,11 @@ const CaptureRecurringContainer = () => {
   };
 
   const mountFeeWise = async (uri) => {
-    const feeWise = await setupFeewise(uri, true, false, feeWiseOptions);
+    const feeWise = await setupFeewise(uri, true, true, feeWiseOptions);
+    feeWise.on('formValidChange', (event) => {
+      setDisableSubmit(!event.complete);
+    });
+
     try {
       feeWise.mount('#feewise-iframe-wrapper');
     } catch (error) {
@@ -50,6 +53,7 @@ const CaptureRecurringContainer = () => {
 
   const createPaymentToken = async (customer) => {
     let response;
+    if (!customer) return;
     const request = {
       description: '',
       debtor: {
@@ -70,10 +74,10 @@ const CaptureRecurringContainer = () => {
         headers: {
           "Content-Type": "application/json",
         },
-      })
+      });
       response = await r.json();
       setFeeWiseUri(response.capture_uri);
-    } catch(error) {
+    } catch (error) {
       console.error(error);
       return error;
     }
@@ -83,24 +87,23 @@ const CaptureRecurringContainer = () => {
 
   useEffect(() => {
     try {
-      new URL(feeWiseUri)
-      mountFeeWise(feeWiseUri)
-    } catch(error) {
-      console.log('no uri loaded')
+      new URL(feeWiseUri);
+      mountFeeWise(feeWiseUri);
+    } catch (error) {
+      console.log('no uri loaded');
     }
-  }, [feeWiseUri])
+  }, [feeWiseUri]);
   useEffect(() => {
-    createPaymentToken(customerStore.customer)
+    createPaymentToken(customerStore.customer);
   }, [customerStore.customer]);
 
   return (
-    <div>
+    <div className="capture-recurring">
       <Capture
-        customer={customerStore.customer}
         disableSubmit={disableSubmit}
         captureResponse={captureResponse}
-        cancelAddNew={cancelAddNew}
         handleFeeWiseSubmit={handleFeeWiseSubmit}
+        gotoCustomerDetails={gotoCustomerDetails}
       />
     </div>
   );
