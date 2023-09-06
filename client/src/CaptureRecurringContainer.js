@@ -38,13 +38,13 @@ const CaptureRecurringContainer = ({gotoCustomerDetails}) => {
   };
 
   const mountFeeWise = async (uri) => {
-    const feeWise = await setupFeewise(uri, true, true, feeWiseOptions);
+    const feeWise = await setupFeewise(uri, false, true, feeWiseOptions);
     feeWise.on('formValidChange', (event) => {
       setDisableSubmit(!event.complete);
     });
 
     try {
-      feeWise.mount('#feewise-iframe-wrapper');
+      await feeWise.mount('#feewise-iframe-wrapper');
     } catch (error) {
       alert(error);
     }
