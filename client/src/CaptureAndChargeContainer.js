@@ -35,7 +35,7 @@ const CaptureAndChargeContainer = () => {
     setDisableSubmit(true);
     try {
       const response = await feeWiseApi?.submit();
-      chargePaymentMethod(response.response.paymentMethod.paymentToken);
+      chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
       setCaptureResponse(response);
     } catch (error) {
       console.log(error);

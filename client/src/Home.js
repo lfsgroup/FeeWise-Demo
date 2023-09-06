@@ -97,6 +97,9 @@ function Home() {
     fetch(`${BASE_URL}/create-charge`, {
       method: 'POST',
       body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }).then(async (r) => {
       const response = await r.json();
       setIsSubmitting(false);
