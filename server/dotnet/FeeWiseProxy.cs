@@ -66,7 +66,8 @@ public class FeeWiseProxy : IFeeWiseProxy
         (
             firmId: _options.FirmId,
             amount: request.Amount.ToString(),
-            settlementAccountId: request.SettlementAccountId
+            settlementAccountId: request.SettlementAccountId,
+            debtor: request.Debtor
         );
         ApiResponse<ChargeAndPayResponse> response;
         try

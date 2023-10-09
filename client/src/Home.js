@@ -89,7 +89,7 @@ function Home() {
   const handleChargePaymentMethod = () => {
     setIsSubmitting(true);
     const payload = {
-      customerId: selectedCustomer.debtor.debtor_id,
+      debtor: selectedCustomer.debtor,
       paymentMethodId: selectedPaymentMethod,
       amount,
       settlementAccountId: selectedAccount,

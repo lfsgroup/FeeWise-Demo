@@ -126,21 +126,16 @@ type CreateChargeRequest struct {
 	PaymentMethodID     string          `json:"paymentMethodID"`
 	Amount              decimal.Decimal `json:"amount"`
 	SettlementAccountID string          `json:"settlementAccountId"`
+	Debtor              Debtor          `json:"debtor,omitempty"`
 }
 
 type FeeWiseChargeRequest struct {
-	FirmID              string `json:"firm_id"`
-	Amount              string `json:"amount"`
-	SettlementAccountId string `json:"settlement_account_id"`
-	Description         string `json:"description"`
-	Debtor              struct {
-		ExternalID    string `json:"external_id"`
-		FirstName     string `json:"first_name"`
-		LastName      string `json:"last_name"`
-		Email         string `json:"email"`
-		ContactNumber string `json:"contact_number"`
-	} `json:"debtor,omitempty"`
-	Notes []string `json:"notes,omitempty"`
+	FirmID              string   `json:"firm_id"`
+	Amount              string   `json:"amount"`
+	SettlementAccountId string   `json:"settlement_account_id"`
+	Description         string   `json:"description"`
+	Debtor              Debtor   `json:"debtor,omitempty"`
+	Notes               []string `json:"notes,omitempty"`
 }
 
 type CreateChargeResponse struct {
@@ -153,15 +148,17 @@ type CreateChargeResponse struct {
 		FirmID              string   `json:"firm_id"`
 		Notes               []string `json:"notes"`
 		SettlementAccountID string   `json:"settlement_account_id"`
-		Debtor              struct {
-			ExternalID    *string `json:"external_id,omitempty"`
-			FirstName     *string `json:"first_name,omitempty"`
-			LastName      *string `json:"last_name,omitempty"`
-			Email         *string `json:"email,omitempty"`
-			ContactNumber *string `json:"contact_number,omitempty"`
-		} `json:"debtor,omitempty"`
+		Debtor              Debtor   `json:"debtor,omitempty"`
 	} `json:"charge"`
 	PaymentID string `json:"payment_id"`
+}
+
+type Debtor struct {
+	ExternalID    *string `json:"external_id,omitempty"`
+	FirstName     *string `json:"first_name,omitempty"`
+	LastName      *string `json:"last_name,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	ContactNumber *string `json:"contact_number,omitempty"`
 }
 
 // ErrorResponseMessage represents the structure of the error

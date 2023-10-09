@@ -17,6 +17,13 @@ const Capture = ({
           </div>
         )}
 
+        {captureResponse && captureResponse.error && (
+          <div className="payment-result sb-error-box">
+            <p>Capture Result: Add payment method failed </p>
+            <pre>{JSON.stringify(captureResponse, undefined, 2)}</pre>
+          </div>
+        )}
+
         {chargeResponse && (
           <div className="payment-result sb-result-box">
             <h3>Charge Result: successfully charged!</h3>

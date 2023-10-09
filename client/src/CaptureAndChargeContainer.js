@@ -52,7 +52,7 @@ const CaptureAndChargeContainer = () => {
   const chargePaymentMethod = (paymentMethodId) => {
     setDisableSubmit(true);
     const payload = {
-      customerId: customer.debtor.debtor_id,
+      debtor: customer.debtor,
       paymentMethodId: paymentMethodId,
       amount,
       settlementAccountId: selectedAccount,
@@ -108,7 +108,6 @@ const CaptureAndChargeContainer = () => {
       response = await r.json();
       setFeeWiseUri(response.capture_uri)
     });
-
   };
   useEffect(() => {
     setDisableSubmit(!amount || !selectedAccount || !feeWiseValid);

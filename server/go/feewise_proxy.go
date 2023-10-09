@@ -41,7 +41,7 @@ func (p FeeWiseProxy) handleGetCustomers(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error reading feeWise response", 500)
 		return
 	}
-	
+
 	log.Debug().Msgf("FeeWise Partner Api response: %s", string(feeWiseCustomers))
 	var customersResponse CustomersResponse
 	err = json.Unmarshal(feeWiseCustomers, &customersResponse)
@@ -93,6 +93,7 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		FirmID:              p.FirmId,
 		Amount:              chargeRequest.Amount.String(),
 		SettlementAccountId: chargeRequest.SettlementAccountID,
+		Debtor:              chargeRequest.Debtor,
 	}
 
 	body, _ := json.Marshal(feeWiseChargeRequest)
@@ -111,7 +112,7 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error calling feeWise create and confirm charge", 500)
 		return
 	}
-	
+
 	createChargeResponse, err := io.ReadAll(response.Body)
 	if err != nil {
 		writeJSONErrorMessage(w, "Error reading feeWise response", 500)

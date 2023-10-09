@@ -83,10 +83,7 @@ const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
       setFeeWiseUri(response.capture_uri);
     } catch (error) {
       console.error(error);
-      return error;
     }
-
-    return response;
   };
 
   useEffect(() => {
