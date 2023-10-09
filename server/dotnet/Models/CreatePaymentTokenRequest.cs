@@ -10,4 +10,7 @@ public class CreatePaymentTokenRequest
 
     [JsonProperty("token_type", NullValueHandling = NullValueHandling.Ignore)]
     public TokenType TokenType { get; set; }
+
+    [JsonProperty("payment_methods", NullValueHandling = NullValueHandling.Ignore)]
+    public List<PaymentMethod> PaymentMethods { get; set; }
 }

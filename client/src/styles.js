@@ -40,18 +40,26 @@ export const hostedFieldStyles = {
         '.PickerItem': {
           border: '1px solid #b5b5b5',
         },
-        '.Input': {
+        '.Input, .Tab': {
           border: '1px solid #b5b5b5',
           padding: '6px 8px 6px 8px',
         },
-        '.Input:hover': {
+        '.Input:hover, .Tab:hover': {
           border: '1px solid #974bc3',
         },
-        '.Input:focus': {
+        '.Input:focus, .Tab--selected': {
           border: '1px solid #974bc3',
           boxShadow: '0px 0px 0px 1px #974BC3',
           outline: 'none',
         },
+        '.TabIcon, .TabIcon--selected, .TabIcon:hover, .Tab' : {
+          color: '#974bc3',
+          // fill: 'var(--colorIconTab)',
+          fill: '#974bc3',
+        },
+        '.TabLabel, .TabLabel--selected' : {
+          color: '#974bc3',
+        }
       },
     },
   },

@@ -86,7 +86,8 @@ public class FeeWiseProxy : IFeeWiseProxy
         var tokenRequest = new PaymentTokenBody
         (
             debtor: request.Debtor,
-            tokenType: request.TokenType
+            tokenType: request.TokenType,
+            paymentMethods: request.PaymentMethods
         );
         ApiResponse<PaymentTokenResponse> response;
         try

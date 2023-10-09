@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { SelectedCustomerContext } from './context/customerContext';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from './baseUrl';
-const CaptureRecurringContainer = ({gotoCustomerDetails}) => {
+const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
   // grab setupFeewise from the window
   const setupFeewise = window.setupFeewise;
 
@@ -70,9 +70,13 @@ const CaptureRecurringContainer = ({gotoCustomerDetails}) => {
     try {
       const r = await fetch(`${BASE_URL}/create-payment-token`, {
         method: 'POST',
-        body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'MultiUse' }),
+        body: JSON.stringify({
+          debtor: { ...request.debtor },
+          token_type: 'MultiUse',
+          payment_methods: ['Card', 'DirectDebit'],
+        }),
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
       response = await r.json();
