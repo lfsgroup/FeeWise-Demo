@@ -89,7 +89,7 @@ function Home() {
   const handleChargePaymentMethod = () => {
     setIsSubmitting(true);
     const payload = {
-      customerId: selectedCustomer.debtor.debtor_id,
+      debtor: selectedCustomer.debtor,
       paymentMethodId: selectedPaymentMethod,
       amount,
       settlementAccountId: selectedAccount,
@@ -98,7 +98,7 @@ function Home() {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     }).then(async (r) => {
       const response = await r.json();
@@ -113,13 +113,12 @@ function Home() {
     setPaymentResponse('');
   };
 
-  const selectTab=(tabName)=>{
-    return ()=>{
+  const selectTab = (tabName) => {
+    return () => {
       setSelectedTab(tabName);
       setPaymentResponse('');
-
-    }
-  }
+    };
+  };
 
   return (
     <main id="sb-main">
@@ -130,7 +129,14 @@ function Home() {
         <h1 className="sb-form-title"> Customers </h1>
         <div className="sb-form">
           {isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
               <Loader />
               <div style={{ fontSize: '0.8rem', color: '#666' }}>Loading customers...</div>
             </div>
@@ -159,10 +165,7 @@ function Home() {
         {selectedCustomer && (
           <div>
             <div className="sb-tab-list">
-              <span
-                className={`sb-tab ${selectedTab === 'charge' ? 'selected' : ''}`}
-                onClick={selectTab('charge')}
-              >
+              <span className={`sb-tab ${selectedTab === 'charge' ? 'selected' : ''}`} onClick={selectTab('charge')}>
                 Charge
               </span>
               <span
@@ -199,9 +202,9 @@ function Home() {
                         </option>
                         {selectedCustomer.payment_methods.map((paymentMethod) => (
                           <option key={paymentMethod.payment_token} value={paymentMethod.payment_token}>
-                            {paymentMethod.scheme
-                              ? `${paymentMethod.scheme} ending in ${paymentMethod.scheme_partial_number}`
-                              : 'US Bank Account'}
+                            {paymentMethod.card
+                              ? `${paymentMethod.card.scheme} ending in ${paymentMethod.card.scheme_partial_number}`
+                              : `${paymentMethod.debit.country} bank account ending in ${paymentMethod.debit.account_partial_number}`}
                           </option>
                         ))}
                       </select>
@@ -259,7 +262,16 @@ function Home() {
         <div>
           <button onClick={cancelSelection} className="btn-secondary">
             Cancel
-            <span style={{ fontSize: 20, lineHeight: '15px', verticalAlign: 'middle', marginLeft: 10 }}>&#10539;</span>
+            <span
+              style={{
+                fontSize: 20,
+                lineHeight: '15px',
+                verticalAlign: 'middle',
+                marginLeft: 10,
+              }}
+            >
+              &#10539;
+            </span>
           </button>
         </div>
       )}

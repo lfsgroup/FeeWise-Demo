@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-
+using FeeWise.Model;
 namespace Server;
 
 public class CreateChargeRequest
@@ -12,4 +12,7 @@ public class CreateChargeRequest
 
     [JsonProperty("settlementAccountId", NullValueHandling = NullValueHandling.Ignore)]
     public Guid SettlementAccountId {get;set;}
+
+    [JsonProperty("debtor", NullValueHandling = NullValueHandling.Ignore)]
+    public Debtor? Debtor { get; set; }
 }

@@ -52,7 +52,7 @@ const CaptureAndChargeContainer = () => {
   const chargePaymentMethod = (paymentMethodId) => {
     setDisableSubmit(true);
     const payload = {
-      customerId: customer.debtor.debtor_id,
+      debtor: customer.debtor,
       paymentMethodId: paymentMethodId,
       amount,
       settlementAccountId: selectedAccount,
@@ -96,13 +96,11 @@ const CaptureAndChargeContainer = () => {
         email: customer.debtor.email,
         contact_number: customer.debtor.contact_number,
       },
-      payment_methods_override: ['Card', 'DirectDebit'],
-      store_payment_methods: ['Card', 'DirectDebit'],
     };
 
     fetch(`${BASE_URL}/create-payment-token`, {
       method: 'POST',
-      body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'SingleUse' }),
+      body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'SingleUse', payment_methods: ["Card", "DirectDebit"], }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -110,7 +108,6 @@ const CaptureAndChargeContainer = () => {
       response = await r.json();
       setFeeWiseUri(response.capture_uri)
     });
-
   };
   useEffect(() => {
     setDisableSubmit(!amount || !selectedAccount || !feeWiseValid);

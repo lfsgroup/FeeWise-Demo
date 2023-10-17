@@ -66,7 +66,8 @@ public class FeeWiseProxy : IFeeWiseProxy
         (
             firmId: _options.FirmId,
             amount: request.Amount.ToString(),
-            settlementAccountId: request.SettlementAccountId
+            settlementAccountId: request.SettlementAccountId,
+            debtor: request.Debtor
         );
         ApiResponse<ChargeAndPayResponse> response;
         try
@@ -86,7 +87,8 @@ public class FeeWiseProxy : IFeeWiseProxy
         var tokenRequest = new PaymentTokenBody
         (
             debtor: request.Debtor,
-            tokenType: request.TokenType
+            tokenType: request.TokenType,
+            paymentMethods: request.PaymentMethods
         );
         ApiResponse<PaymentTokenResponse> response;
         try
