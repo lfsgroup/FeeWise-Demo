@@ -3,26 +3,37 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/rs/zerolog/log"
 )
 
 type FeeWiseProxy struct {
-	BaseUrl          string `json:"base_url,omitempty"`
-	ChannelPartnerId string `json:"channel_partner_id,omitempty"`
-	ApiKey           string `json:"api_key,omitempty"`
-	FirmId           string `json:"firm_id,omitempty"`
+	BaseUrl          url.URL
+	ChannelPartnerId string
+	ApiKey           string
+	FirmId           string
 }
 
 func (p FeeWiseProxy) handleConfig(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, p)
+	proxy := struct {
+		BaseUrl          string `json:"base_url,omitempty"`
+		ChannelPartnerId string `json:"channel_partner_id,omitempty"`
+		ApiKey           string `json:"api_key,omitempty"`
+		FirmId           string `json:"firm_id,omitempty"`
+	}{
+		BaseUrl:          p.BaseUrl.String(),
+		ChannelPartnerId: p.ChannelPartnerId,
+		ApiKey:           p.ApiKey,
+		FirmId:           p.FirmId,
+	}
+	writeJSON(w, proxy)
 }
 
 func (p FeeWiseProxy) handleGetCustomers(w http.ResponseWriter, r *http.Request) {
-	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/customers", p.BaseUrl, p.FirmId)
+	url := p.BaseUrl.JoinPath("api/v3/partner/firms", p.FirmId, "customers").String()
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)
@@ -54,7 +65,7 @@ func (p FeeWiseProxy) handleGetCustomers(w http.ResponseWriter, r *http.Request)
 }
 
 func (p FeeWiseProxy) handleGetAccounts(w http.ResponseWriter, r *http.Request) {
-	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/accounts", p.BaseUrl, p.FirmId)
+	url := p.BaseUrl.JoinPath("api/v3/partner/firms", p.FirmId, "accounts").String()
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)
@@ -99,7 +110,7 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 
 	body, _ := json.Marshal(feeWiseChargeRequest)
 	bodyReader := bytes.NewReader(body)
-	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/charges/payment_token/%s", p.BaseUrl, p.FirmId, chargeRequest.PaymentMethodID)
+	url := p.BaseUrl.JoinPath("api/v3/partner/firms", p.FirmId, "charges/payment_token", chargeRequest.PaymentMethodID).String()
 	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)
@@ -142,7 +153,7 @@ func (p FeeWiseProxy) handleCreatePaymentToken(w http.ResponseWriter, r *http.Re
 
 	body, _ := json.Marshal(paymentTokenRequest)
 	bodyReader := bytes.NewReader(body)
-	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/payment_token", p.BaseUrl, p.FirmId)
+	url := p.BaseUrl.JoinPath("api/v3/partner/firms", p.FirmId, "payment_token").String()
 	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)

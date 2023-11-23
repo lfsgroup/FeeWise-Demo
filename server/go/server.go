@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/rs/zerolog/log"
@@ -24,8 +25,13 @@ func main() {
 		log.Fatal().Msg("Error loading .env file")
 	}
 
+	baseURL, err := url.Parse(os.Getenv("PARTNER_API_URL"))
+	if err != nil {
+		log.Fatal().Msgf("Invalid Partner API URL: %v", err)
+	}
+
 	feeWise := FeeWiseProxy{
-		BaseUrl:          os.Getenv("PARTNER_API_URL"),
+		BaseUrl:          *baseURL,
 		ChannelPartnerId: os.Getenv("CHANNEL_PARTNER_ID"),
 		ApiKey:           os.Getenv("PARTNER_API_KEY"),
 		FirmId:           os.Getenv("FIRM_ID"),
