@@ -13,7 +13,13 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+
+	envFile := os.Getenv("ENV_FILE")
+	if envFile == "" {
+		envFile = ".env"
+	}
+
+	err := godotenv.Load(envFile)
 	if err != nil {
 		log.Fatal().Msg("Error loading .env file")
 	}
@@ -56,7 +62,7 @@ func withCors(h http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
-			return;
+			return
 		} else {
 			h(w, r)
 		}
@@ -76,7 +82,6 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 		log.Printf("io.Copy: %v", err)
 		return
 	}
-	return
 }
 
 func writeJSONError(w http.ResponseWriter, v interface{}, code int) {
@@ -92,4 +97,3 @@ func writeJSONErrorMessage(w http.ResponseWriter, message string, code int) {
 	}
 	writeJSONError(w, resp, code)
 }
-
