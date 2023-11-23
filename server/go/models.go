@@ -49,6 +49,20 @@ type CustomersResponse struct {
 	} `json:"customers"`
 }
 
+const (
+	PaymentMethodCard        PaymentMethod = "Card"
+	PaymentMethodDirectDebit PaymentMethod = "DirectDebit"
+)
+
+type PaymentMethod string
+
+const (
+	TokenTypeSingleUse TokenType = "SingleUse"
+	TokenTypeMultiUse  TokenType = "MultiUse"
+)
+
+type TokenType string
+
 type CreatePaymentTokenRequest struct {
 	Debtor struct {
 		ExternalID    string `json:"external_id,omitempty"`
@@ -57,7 +71,8 @@ type CreatePaymentTokenRequest struct {
 		Email         string `json:"email,omitempty"`
 		ContactNumber string `json:"contact_number,omitempty"`
 	} `json:"debtor,omitempty"`
-	TokenType string `json:"token_type,omitempty"`
+	TokenType      TokenType       `json:"token_type,omitempty"`
+	PaymentMethods []PaymentMethod `json:"payment_methods,omitempty"`
 }
 
 type CreatePaymentTokenResponse struct {
@@ -71,7 +86,8 @@ type CreatePaymentTokenResponse struct {
 		LastName      string `json:"last_name"`
 		Name          string `json:"name"`
 	} `json:"debtor"`
-	PaymentToken string `json:"payment_token"`
+	PaymentToken   string          `json:"payment_token"`
+	PaymentMethods []PaymentMethod `json:"payment_methods,omitempty"`
 }
 
 type CreateChargeRequest struct {

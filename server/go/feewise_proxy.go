@@ -41,7 +41,7 @@ func (p FeeWiseProxy) handleGetCustomers(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error reading feeWise response", 500)
 		return
 	}
-	
+
 	log.Debug().Msgf("FeeWise Partner Api response: %s", string(feeWiseCustomers))
 	var customersResponse CustomersResponse
 	err = json.Unmarshal(feeWiseCustomers, &customersResponse)
@@ -49,6 +49,7 @@ func (p FeeWiseProxy) handleGetCustomers(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
 		return
 	}
+	w.WriteHeader(response.StatusCode)
 	writeJSON(w, customersResponse)
 }
 
@@ -78,6 +79,7 @@ func (p FeeWiseProxy) handleGetAccounts(w http.ResponseWriter, r *http.Request) 
 		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
 		return
 	}
+	w.WriteHeader(response.StatusCode)
 	writeJSON(w, accountsResponse)
 }
 
@@ -111,7 +113,7 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error calling feeWise create and confirm charge", 500)
 		return
 	}
-	
+
 	createChargeResponse, err := io.ReadAll(response.Body)
 	if err != nil {
 		writeJSONErrorMessage(w, "Error reading feeWise response", 500)
@@ -124,6 +126,7 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
 		return
 	}
+	w.WriteHeader(response.StatusCode)
 	writeJSON(w, result)
 }
 
@@ -134,6 +137,8 @@ func (p FeeWiseProxy) handleCreatePaymentToken(w http.ResponseWriter, r *http.Re
 		writeJSONErrorMessage(w, "Error decoding request", 500)
 		return
 	}
+	paymentTokenRequest.PaymentMethods = []PaymentMethod{PaymentMethodCard, PaymentMethodDirectDebit}
+	paymentTokenRequest.TokenType = "SingleUse"
 
 	body, _ := json.Marshal(paymentTokenRequest)
 	bodyReader := bytes.NewReader(body)
@@ -163,5 +168,6 @@ func (p FeeWiseProxy) handleCreatePaymentToken(w http.ResponseWriter, r *http.Re
 		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
 		return
 	}
+	w.WriteHeader(response.StatusCode)
 	writeJSON(w, result)
 }
