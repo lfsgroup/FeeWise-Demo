@@ -3,6 +3,7 @@ import Capture from './Capture';
 import { useContext, useEffect, useState } from 'react';
 
 import { SelectedCustomerContext } from './context/customerContext';
+import ReviewModal from './review-modal';
 import { useNavigate } from 'react-router-dom';
 import { ROUTE_NEW_CUSTOMER } from './routes';
 import { BASE_URL } from './baseUrl';
@@ -22,27 +23,62 @@ const CaptureAndChargeContainer = () => {
   const [feeWiseValid, setFeeWiseValid] = useState(false);
   //change this to test different dynamic styles
   const feeWiseOptions = hostedFieldStyles.paymentPortal;
-
+  const [hasSurcharge, setHasSurcharge] = useState(false);
   const handleSelectedAccount = (e) => {
     setSelectedAccount(e.target.value);
   };
-
+  const [disableReview, setDisableReview] = useState(false);
   const handleAmountChange = (e) => {
     setAmount(e.target.value);
   };
 
-  const handleFeeWiseSubmit = async () => {
+  const [reviewReady, setReviewReady] = useState(false);
+  let capture = null;
+  const [paymentToken, setPaymentToken] = useState('');
+  const feewiseSubmit = async () => {
     setDisableSubmit(true);
     try {
       const response = await feeWiseApi?.submit();
       chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
+      setPaymentToken(response.response.paymentMethodDetails.paymentToken);
       setCaptureResponse(response);
     } catch (error) {
       console.log(error);
       setCaptureResponse(error);
+    } finally {
+      setDisableSubmit(false);
     }
-
-    setDisableSubmit(false);
+  };
+  const reviewSubmit = async () => {
+    setDisableSubmit(true);
+    try {
+      const response = await feeWiseApi?.submit();
+      console.log('FW   review submit response: ', response);
+      setPaymentToken(response.response.paymentMethodDetails.paymentToken);
+      await new Promise((resolve) =>
+        setTimeout(() => {
+          setReviewReady(true);
+          resolve(true);
+        }, 1000),
+      );
+    } catch (error) {
+      console.log(error);
+      setCaptureResponse(error);
+    } finally {
+      setDisableSubmit(false);
+    }
+  };
+  const handleFeeWiseSubmit = () => {
+    if (hasSurcharge) {
+      if (!reviewReady) {
+        reviewSubmit();
+      } else {
+        // submit it
+        chargePaymentMethod(paymentToken);
+      }
+    } else {
+      feewiseSubmit();
+    }
   };
 
   const cancelAddNew = async () => {
@@ -61,17 +97,19 @@ const CaptureAndChargeContainer = () => {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     }).then(async (r) => {
       const response = await r.json();
       setChargeResponse(response);
+      setReviewReady(false);
+      createPaymentToken(customerStore.customer);
     });
     setDisableSubmit(false);
   };
 
   const mountFeeWise = async (captureUri) => {
-    const feeWise = await setupFeewise(captureUri, true, false, feeWiseOptions);
+    const feeWise = await setupFeewise(captureUri, true, false, { ...feeWiseOptions, hasSurcharge });
     feeWise.on('formValidChange', (event) => {
       setFeeWiseValid(event.complete);
     });
@@ -100,13 +138,18 @@ const CaptureAndChargeContainer = () => {
 
     fetch(`${BASE_URL}/create-payment-token`, {
       method: 'POST',
-      body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'MultiUse', payment_methods: ["Card", "DirectDebit"], }),
+      body: JSON.stringify({
+        debtor: { ...request.debtor },
+        token_type: 'MultiUse',
+        payment_methods: ['Card', 'DirectDebit'],
+      }),
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     }).then(async (r) => {
       response = await r.json();
-      setFeeWiseUri(response.capture_uri)
+      setHasSurcharge(true);
+      setFeeWiseUri(response.capture_uri);
     });
   };
   useEffect(() => {
@@ -138,6 +181,11 @@ const CaptureAndChargeContainer = () => {
     }
   }, [feeWiseUri]);
 
+  const cancelReview = () => {
+    setReviewReady(false);
+    createPaymentToken(customerStore.customer);
+  };
+
   return (
     <div>
       <div className="sb-form">
@@ -147,30 +195,40 @@ const CaptureAndChargeContainer = () => {
         <div>
           <label className="label">
             Settlement Account
-          <select onChange={handleSelectedAccount}>
-            <option key="default" value="default">
-              Select bank account...
-            </option>
-            {bankAccounts.map((account) => (
-              <option key={account.account_id} value={account.account_id}>
-                {account.account_name}
+            <select onChange={handleSelectedAccount}>
+              <option key="default" value="default">
+                Select bank account...
               </option>
-            ))}
-          </select>
+              {bankAccounts.map((account) => (
+                <option key={account.account_id} value={account.account_id}>
+                  {account.account_name}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label>
-          Amount:
-          <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
+            Amount:
+            <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
           </label>
         </div>
-      <Capture
-        disableSubmit={disableSubmit}
-        captureResponse={captureResponse}
-        chargeResponse={chargeResponse}
-        handleFeeWiseSubmit={handleFeeWiseSubmit}
+        {hasSurcharge && (
+          <div className="sb-surcharge-info">
+            <span className="sb-info-icon">!</span>A surcharge may apply to certain card payments. Any applicable fees
+            can be reviewed before submitting payment.
+          </div>
+        )}
+        {reviewReady && (
+          <ReviewModal amount={amount} cancelReview={cancelReview} handleFeeWiseSubmit={handleFeeWiseSubmit} />
+        )}
+        <Capture
+          disableSubmit={disableSubmit}
+          captureResponse={captureResponse}
+          chargeResponse={chargeResponse}
+          handleFeeWiseSubmit={handleFeeWiseSubmit}
+          review={hasSurcharge && reviewReady}
         />
-        </div>
+      </div>
     </div>
   );
 };

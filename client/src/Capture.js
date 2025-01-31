@@ -3,7 +3,8 @@ const Capture = ({
   captureResponse,
   handleFeeWiseSubmit,
   chargeResponse = null,
-  gotoCustomerDetails = undefined
+  gotoCustomerDetails = null,
+  review = false,
 }) => {
   return (
     <div>
@@ -30,14 +31,18 @@ const Capture = ({
             <pre>{JSON.stringify(chargeResponse, undefined, 2)}</pre>
           </div>
         )}
-        {!((captureResponse && !captureResponse.error) || chargeResponse ) && (
+        {!((captureResponse && !captureResponse.error) || chargeResponse || review !== undefined) || (
           <div style={{ display: 'flex', flexDirection: 'col', gap: 10 }}>
-          {gotoCustomerDetails && (<button onClick={gotoCustomerDetails} className="btn-secondary">&#8592; Back</button>)}
-          <button onClick={handleFeeWiseSubmit} disabled={disableSubmit} style={{ display: 'inline-block' }}>
-            Submit
-          </button>
-        </div>)}
-
+            {gotoCustomerDetails && (
+              <button onClick={gotoCustomerDetails} className="btn-secondary">
+                &#8592; Back
+              </button>
+            )}
+            <button onClick={handleFeeWiseSubmit} disabled={disableSubmit} style={{ display: 'inline-block' }}>
+              {review !== undefined ? 'Review' : 'Submit'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

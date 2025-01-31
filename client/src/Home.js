@@ -21,7 +21,7 @@ function Home() {
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [paymentResponse, setPaymentResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('charge'); // charge, add-payment-method, single-charge
+  const [selectedTab, setSelectedTab] = useState('single-charge'); // charge, add-payment-method, single-charge
   const fetchCustomers = () => {
     setIsLoading(true);
     fetch(`${BASE_URL}/customers`).then(async (r) => {
