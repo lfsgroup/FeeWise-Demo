@@ -43,7 +43,8 @@ const CaptureAndChargeContainer = () => {
       setPaymentToken(response.response.paymentMethodDetails.paymentToken);
       setCaptureResponse(response);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+
       setCaptureResponse(error);
     } finally {
       setDisableSubmit(false);
@@ -53,16 +54,12 @@ const CaptureAndChargeContainer = () => {
     setDisableSubmit(true);
     try {
       const response = await feeWiseApi?.submit();
-      console.log('FW   review submit response: ', response);
+      console.error('FW review submit response: ', response);
       setPaymentToken(response.response.paymentMethodDetails.paymentToken);
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          setReviewReady(true);
-          resolve(true);
-        }, 1000),
-      );
+      chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
+      setReviewReady(true);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setCaptureResponse(error);
     } finally {
       setDisableSubmit(false);
@@ -91,21 +88,24 @@ const CaptureAndChargeContainer = () => {
       debtor: customer.debtor,
       paymentMethodId: paymentMethodId,
       amount,
-      settlementAccountId: selectedAccount,
+      settlement_account_id: selectedAccount,
     };
-    fetch(`${BASE_URL}/create-charge`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then(async (r) => {
-      const response = await r.json();
-      setChargeResponse(response);
-      setReviewReady(false);
-      createPaymentToken(customerStore.customer);
-    });
-    setDisableSubmit(false);
+    try {
+      fetch(`${BASE_URL}/create-charge`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(async (r) => {
+        const response = await r.json();
+        setChargeResponse(response);
+        setReviewReady(true);
+      });
+      setDisableSubmit(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const mountFeeWise = async (captureUri) => {
