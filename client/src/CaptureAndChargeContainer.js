@@ -35,6 +35,7 @@ const CaptureAndChargeContainer = () => {
   const [reviewReady, setReviewReady] = useState(false);
   let capture = null;
   const [paymentToken, setPaymentToken] = useState('');
+  const [reviewData, setReviewData] = useState(null);
   const feewiseSubmit = async () => {
     setDisableSubmit(true);
     try {
@@ -57,7 +58,6 @@ const CaptureAndChargeContainer = () => {
       console.error('FW review submit response: ', response);
       setPaymentToken(response.response.paymentMethodDetails.paymentToken);
       chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
-      setReviewReady(true);
     } catch (error) {
       console.error(error);
       setCaptureResponse(error);
@@ -71,7 +71,7 @@ const CaptureAndChargeContainer = () => {
         reviewSubmit();
       } else {
         // submit it
-        chargePaymentMethod(paymentToken);
+        console.log('Call confirm end point ');
       }
     } else {
       feewiseSubmit();
@@ -97,14 +97,27 @@ const CaptureAndChargeContainer = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-      }).then(async (r) => {
-        const response = await r.json();
-        setChargeResponse(response);
-        setReviewReady(true);
-      });
+      })
+        .then(async (r) => {
+          const response = await r.json();
+          if (r.status === 402) {
+            // payment review required
+            setReviewReady(true);
+            console.log('setting review ready');
+            setReviewData(response?.payment_review);
+            console.log(response?.payment_review);
+          } else {
+            setChargeResponse(response);
+            setCaptureResponse(response?.payment_review);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       setDisableSubmit(false);
     } catch (err) {
       console.error(err);
+      setCaptureResponse(err);
     }
   };
 
@@ -219,7 +232,7 @@ const CaptureAndChargeContainer = () => {
           </div>
         )}
         {reviewReady && (
-          <ReviewModal amount={amount} cancelReview={cancelReview} handleFeeWiseSubmit={handleFeeWiseSubmit} />
+          <ReviewModal reviewData={reviewData} cancelReview={cancelReview} handleFeeWiseSubmit={handleFeeWiseSubmit} />
         )}
         <Capture
           disableSubmit={disableSubmit}
