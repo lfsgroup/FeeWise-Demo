@@ -90,7 +90,6 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 	}
 
 	feeWiseChargeRequest := FeeWiseChargeRequest{
-		FirmID:              p.FirmId,
 		Amount:              chargeRequest.Amount.String(),
 		SettlementAccountId: chargeRequest.SettlementAccountID,
 		Debtor:              chargeRequest.Debtor,
@@ -98,7 +97,8 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 
 	body, _ := json.Marshal(feeWiseChargeRequest)
 	bodyReader := bytes.NewReader(body)
-	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/charges/payment_token/%s", p.BaseUrl, p.FirmId, chargeRequest.PaymentMethodID)
+
+	url := fmt.Sprintf("%s/api/v4/partner/firms/%s/charges/payment-token/%s", p.BaseUrl, p.FirmId, chargeRequest.PaymentMethodID)
 	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)
@@ -119,12 +119,13 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	log.Debug().Msgf("FeeWise Partner Api response: %s", string(createChargeResponse))
-	var result CreateChargeResponse
+	var result PaymentReviewResponse
 	err = json.Unmarshal(createChargeResponse, &result)
 	if err != nil {
 		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
 		return
 	}
+	w.WriteHeader(response.StatusCode)
 	writeJSON(w, result)
 }
 
