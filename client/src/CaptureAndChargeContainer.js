@@ -100,7 +100,7 @@ const CaptureAndChargeContainer = () => {
 
     fetch(`${BASE_URL}/create-payment-token`, {
       method: 'POST',
-      body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'SingleUse', payment_methods: ["Card", "DirectDebit"], }),
+      body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'MultiUse', payment_methods: ["Card", "DirectDebit"], }),
       headers: {
         "Content-Type": "application/json",
       },
