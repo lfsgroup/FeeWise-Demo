@@ -20,7 +20,6 @@ const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
   const feeWiseOptions = hostedFieldStyles.feeWise;
 
   const handleFeeWiseSubmit = async (e) => {
-    console.log('handleFeeWiseSubmit');
     setDisableSubmit(true);
     let response;
     try {

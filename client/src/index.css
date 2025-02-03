@@ -206,8 +206,6 @@ code {
 }
 
 .sb-result-box {
-  border: 1px solid green;
-  background: lightgreen;
 }
 
 .sb-error-box {
@@ -234,13 +232,15 @@ code {
 }
 
 .sb-result-box {
+  bborder: 1px solid green;
+  background: lightgreen;
   border: 1px solid green;
-  padding: 20px;
+  padding: 10px;
   background: #dffcdf;
   margin: 10px 0;
   border-radius: 5px;
   font-size: 0.9rem;
-  max-width: 500px;
+  width: 100%;
 }
 
 .sb-result-box pre {

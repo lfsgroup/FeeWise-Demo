@@ -55,7 +55,6 @@ const CaptureAndChargeContainer = () => {
     setDisableSubmit(true);
     try {
       const response = await feeWiseApi?.submit();
-      console.error('FW review submit response: ', response);
       setPaymentToken(response.response.paymentMethodDetails.paymentToken);
       chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
     } catch (error) {
@@ -65,13 +64,36 @@ const CaptureAndChargeContainer = () => {
       setDisableSubmit(false);
     }
   };
+  const confirmPayment = async (payload) => {
+    fetch(`${BASE_URL}/confirm-payment`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (r) => {
+        const response = await r.json();
+        setCaptureResponse(response);
+        setChargeResponse(response);
+        setReviewReady(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   const handleFeeWiseSubmit = () => {
     if (hasSurcharge) {
       if (!reviewReady) {
         reviewSubmit();
       } else {
         // submit it
-        console.log('Call confirm end point ');
+        const payload = {
+          charge_id: reviewData.charge.charge_id,
+          payment_id: reviewData.payment_details.payment_id,
+        };
+
+        confirmPayment(payload);
       }
     } else {
       feewiseSubmit();
@@ -103,9 +125,7 @@ const CaptureAndChargeContainer = () => {
           if (r.status === 402) {
             // payment review required
             setReviewReady(true);
-            console.log('setting review ready');
             setReviewData(response?.payment_review);
-            console.log(response?.payment_review);
           } else {
             setChargeResponse(response);
             setCaptureResponse(response?.payment_review);

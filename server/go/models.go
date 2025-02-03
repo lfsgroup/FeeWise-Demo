@@ -91,6 +91,8 @@ type CreateChargeRequest struct {
 	Amount              decimal.Decimal `json:"amount"`
 	SettlementAccountID string          `json:"settlement_account_id"`
 	Debtor              Debtor          `json:"debtor,omitempty"`
+	ChargeId            string          `json:"charge_id,omitempty"`
+	PaymentID           string          `json:"payment_id,omitempty"`
 }
 
 type FeeWiseChargeRequest struct {

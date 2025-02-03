@@ -167,3 +167,46 @@ func (p FeeWiseProxy) handleCreatePaymentToken(w http.ResponseWriter, r *http.Re
 	}
 	writeJSON(w, result)
 }
+
+func (p FeeWiseProxy) handleConfirmPayment(w http.ResponseWriter, r *http.Request) {
+	var chargeRequest CreateChargeRequest
+	err := json.NewDecoder(r.Body).Decode(&chargeRequest)
+	if err != nil {
+		writeJSONErrorMessage(w, "Error decoding request", 500)
+		return
+	}
+	feeWiseChargeRequest := FeeWiseChargeRequest{}
+
+	body, _ := json.Marshal(feeWiseChargeRequest)
+	bodyReader := bytes.NewReader(body)
+	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/charges/%s/payments/%s/confirm", p.BaseUrl, p.FirmId, chargeRequest.ChargeId, chargeRequest.PaymentID)
+	log.Debug().Msgf("Confirming payment with url: %s", url)
+	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
+	if err != nil {
+		writeJSONErrorMessage(w, "Server error", 500)
+		return
+	}
+	req.Header.Set("x-api-key", p.ApiKey)
+	req.Header.Set("x-channel-partner-id", p.ChannelPartnerId)
+	req.Header.Set("content-type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		writeJSONErrorMessage(w, "Error calling feeWise create and confirm charge", 500)
+		return
+	}
+
+	createChargeResponse, err := io.ReadAll(response.Body)
+	if err != nil {
+		writeJSONErrorMessage(w, "Error reading feeWise response", 500)
+		return
+	}
+	log.Debug().Msgf("FeeWise Partner Api response: %s", string(createChargeResponse))
+	var result CreateChargeResponse
+	err = json.Unmarshal(createChargeResponse, &result)
+	if err != nil {
+		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
+		return
+	}
+	w.WriteHeader(response.StatusCode)
+	writeJSON(w, result)
+}
