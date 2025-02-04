@@ -300,13 +300,12 @@ code {
   margin: 10px 0;
 }
 .sb-surcharge-info {
-  padding: 10px;
-  margin: 10x;
-  border: 1px solid darkorange;
+  padding: 10px 0;
+  margin: 10px 0 15px 0;
   border-radius: 5px;
-  background: darkorange;
-  color: white;
-  font-size: 12px;
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
 }
 .sb-info-icon {
   border: 1px solid #ccc;
