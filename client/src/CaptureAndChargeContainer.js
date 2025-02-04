@@ -259,7 +259,7 @@ const CaptureAndChargeContainer = () => {
           captureResponse={captureResponse}
           chargeResponse={chargeResponse}
           handleFeeWiseSubmit={handleFeeWiseSubmit}
-          review={hasSurcharge && reviewReady}
+          review={hasSurcharge}
         />
       </div>
     </div>

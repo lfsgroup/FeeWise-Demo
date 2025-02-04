@@ -4,7 +4,7 @@ const Capture = ({
   handleFeeWiseSubmit,
   chargeResponse = null,
   gotoCustomerDetails = null,
-  review = false,
+  review,
 }) => {
   return (
     <div>
@@ -22,7 +22,7 @@ const Capture = ({
         {captureResponse && captureResponse.error && (
           <div className="payment-result sb-error-box">
             <p>Capture Result: Add payment method failed </p>
-            <pre>{JSON.stringify(captureResponse, undefined, 2)}</pre>
+            <pre>{JSON.stringify(captureResponse, undefined, 2)}</pre>1
           </div>
         )}
 
@@ -32,7 +32,7 @@ const Capture = ({
             <pre>{JSON.stringify(chargeResponse, undefined, 2)}</pre>
           </div>
         )}
-        {!((captureResponse && !captureResponse.error) || chargeResponse || review !== undefined) || (
+        {!((captureResponse && !captureResponse.error) || chargeResponse) && (
           <div style={{ display: 'flex', flexDirection: 'col', gap: 10 }}>
             {gotoCustomerDetails && (
               <button onClick={gotoCustomerDetails} className="btn-secondary">
@@ -40,7 +40,7 @@ const Capture = ({
               </button>
             )}
             <button onClick={handleFeeWiseSubmit} disabled={disableSubmit} style={{ display: 'inline-block' }}>
-              {review !== undefined ? 'Review' : 'Submit'}
+              {review ? 'Review' : 'Submit'}
             </button>
           </div>
         )}
