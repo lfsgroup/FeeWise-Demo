@@ -142,7 +142,7 @@ const CaptureAndChargeContainer = () => {
   };
 
   const mountFeeWise = async (captureUri) => {
-    const feeWise = await setupFeewise(captureUri, true, false, { ...feeWiseOptions, hasSurcharge });
+    const feeWise = await setupFeewise(captureUri, true, false, feeWiseOptions);
     feeWise.on('formValidChange', (event) => {
       setFeeWiseValid(event.complete);
     });
