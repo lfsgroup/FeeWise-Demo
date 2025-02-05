@@ -30,10 +30,10 @@ func main() {
 	handleFunc(http.MethodGet, "/accounts", feeWise.handleGetAccounts)
 	handleFunc(http.MethodPost, "/create-charge", feeWise.handleCreateCharge)
 	handleFunc(http.MethodPost, "/create-payment-token", feeWise.handleCreatePaymentToken)
+	handleFunc(http.MethodPost, "/confirm-payment", feeWise.handleConfirmPayment)
 
 	log.Printf("server running at %s", os.Getenv("DOMAIN"))
 	log.Fatal().Msg(http.ListenAndServe(os.Getenv("DOMAIN"), nil).Error())
-
 }
 
 func handleFunc(method, path string, h http.HandlerFunc) {
@@ -56,7 +56,7 @@ func withCors(h http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
-			return;
+			return
 		} else {
 			h(w, r)
 		}
@@ -64,7 +64,6 @@ func withCors(h http.HandlerFunc) http.HandlerFunc {
 }
 
 func writeJSON(w http.ResponseWriter, v interface{}) {
-
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(v); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -92,4 +91,3 @@ func writeJSONErrorMessage(w http.ResponseWriter, message string, code int) {
 	}
 	writeJSONError(w, resp, code)
 }
-

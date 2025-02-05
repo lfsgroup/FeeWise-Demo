@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { SelectedCustomerContext } from './context/customerContext';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from './baseUrl';
+
 const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
   // grab setupFeewise from the window
   const setupFeewise = window.setupFeewise;
@@ -19,7 +20,6 @@ const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
   const feeWiseOptions = hostedFieldStyles.feeWise;
 
   const handleFeeWiseSubmit = async (e) => {
-    console.log('handleFeeWiseSubmit');
     setDisableSubmit(true);
     let response;
     try {
@@ -89,6 +89,7 @@ const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
   useEffect(() => {
     try {
       new URL(feeWiseUri);
+      console.log({ feeWiseUri });
       mountFeeWise(feeWiseUri);
     } catch (error) {
       console.log('no uri loaded');

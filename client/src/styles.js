@@ -52,14 +52,14 @@ export const hostedFieldStyles = {
           boxShadow: '0px 0px 0px 1px #974BC3',
           outline: 'none',
         },
-        '.TabIcon, .TabIcon--selected, .TabIcon:hover, .Tab' : {
+        '.TabIcon, .TabIcon--selected, .TabIcon:hover, .Tab': {
           color: '#974bc3',
           // fill: 'var(--colorIconTab)',
           fill: '#974bc3',
         },
-        '.TabLabel, .TabLabel--selected' : {
+        '.TabLabel, .TabLabel--selected': {
           color: '#974bc3',
-        }
+        },
       },
     },
   },
