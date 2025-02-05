@@ -3,6 +3,7 @@ import { SelectedCustomerDispatchContext } from './context/customerContext';
 import { useNavigate } from 'react-router-dom';
 import { ROUTE_CAPTURE_RECURRING, ROUTE_CAPTURE_AND_CHARGE, ROUTE_NEW_CUSTOMER } from './routes';
 import { SelectedCustomerContext } from './context/customerContext';
+import ReviewModal from './review-modal';
 import { BASE_URL } from './baseUrl';
 
 function ChargeContainer() {
@@ -17,7 +18,10 @@ function ChargeContainer() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [paymentResponse, setPaymentResponse] = useState('');
+  const [reviewData, setReviewData] = useState(null);
 
+  const [chargeResponse, setChargeResponse] = useState('');
+  const [reviewReady, setReviewReady] = useState(false);
   const fetchAccounts = () => {
     fetch(`${BASE_URL}/accounts`).then(async (r) => {
       const accounts = await r.json();
@@ -51,6 +55,7 @@ function ChargeContainer() {
   };
 
   const handleChargePaymentMethod = () => {
+    setPaymentResponse('');
     setIsSubmitting(true);
     const payload = {
       debtor: selectedCustomer.debtor,
@@ -66,10 +71,41 @@ function ChargeContainer() {
       },
     }).then(async (r) => {
       const response = await r.json();
+      if (r.status === 402) {
+        // payment review required
+        setReviewReady(true);
+        setReviewData(response?.payment_review);
+      } else {
+        setPaymentResponse(response);
+      }
       setIsSubmitting(false);
-      setPaymentResponse(response);
       navigate('/');
     });
+  };
+  const cancelReview = () => {
+    setReviewReady(false);
+  };
+  const confirmPayment = async () => {
+    const payload = {
+      charge_id: reviewData.charge.charge_id,
+      payment_id: reviewData.payment_details.payment_id,
+    };
+
+    fetch(`${BASE_URL}/confirm-payment`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (r) => {
+        const response = await r.json();
+        setPaymentResponse(response);
+        setReviewReady(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
@@ -123,6 +159,9 @@ function ChargeContainer() {
           </button>
         </div>
       )}{' '}
+      {reviewReady && (
+        <ReviewModal reviewData={reviewData} cancelReview={cancelReview} handleFeeWiseSubmit={confirmPayment} />
+      )}
       {paymentResponse && (
         <div className="payment-result sb-result-box">
           <p>Charge Result: successfully charged</p>

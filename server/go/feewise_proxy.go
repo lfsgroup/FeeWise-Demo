@@ -119,7 +119,13 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	log.Debug().Msgf("FeeWise Partner Api response: %s", string(createChargeResponse))
-	var result PaymentReviewResponse
+	var result interface{}
+	switch response.StatusCode {
+	case http.StatusOK:
+		result = &CreateChargeResponse{}
+	default:
+		result = &PaymentReviewResponse{}
+	}
 	err = json.Unmarshal(createChargeResponse, &result)
 	if err != nil {
 		writeJSONErrorMessage(w, "Error unmarshalling feeWise response", 500)
