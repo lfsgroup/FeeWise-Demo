@@ -88,17 +88,16 @@ func (p FeeWiseProxy) handleCreateCharge(w http.ResponseWriter, r *http.Request)
 		writeJSONErrorMessage(w, "Error decoding request", 500)
 		return
 	}
-
-	feeWiseChargeRequest := FeeWiseChargeRequest{
-		Amount:              chargeRequest.Amount.String(),
-		SettlementAccountId: chargeRequest.SettlementAccountID,
-		Debtor:              chargeRequest.Debtor,
-	}
+	feeWiseChargeRequest := FeeWiseChargeRequest{}
+	feeWiseChargeRequest.Charge.Amount = chargeRequest.Charge.Amount.String()
+	feeWiseChargeRequest.Charge.SettlementAccountId = chargeRequest.Charge.SettlementAccountID
+	feeWiseChargeRequest.Charge.Debtor = chargeRequest.Charge.Debtor
+	feeWiseChargeRequest.Charge.SurchargeChoiceOverride = chargeRequest.Charge.SurchargeChoiceOverride
 
 	body, _ := json.Marshal(feeWiseChargeRequest)
 	bodyReader := bytes.NewReader(body)
 
-	url := fmt.Sprintf("%s/api/v4/partner/firms/%s/charges/payment-token/%s", p.BaseUrl, p.FirmId, chargeRequest.PaymentMethodID)
+	url := fmt.Sprintf("%s/api/v4/partner/firms/%s/charges/payment-token/%s", p.BaseUrl, p.FirmId, chargeRequest.Charge.PaymentMethodID)
 	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)
@@ -175,19 +174,15 @@ func (p FeeWiseProxy) handleCreatePaymentToken(w http.ResponseWriter, r *http.Re
 }
 
 func (p FeeWiseProxy) handleConfirmPayment(w http.ResponseWriter, r *http.Request) {
-	var chargeRequest CreateChargeRequest
+	var chargeRequest ConfirmChargeRequest
 	err := json.NewDecoder(r.Body).Decode(&chargeRequest)
 	if err != nil {
 		writeJSONErrorMessage(w, "Error decoding request", 500)
 		return
 	}
-	feeWiseChargeRequest := FeeWiseChargeRequest{}
-
-	body, _ := json.Marshal(feeWiseChargeRequest)
-	bodyReader := bytes.NewReader(body)
 	url := fmt.Sprintf("%s/api/v3/partner/firms/%s/charges/%s/payments/%s/confirm", p.BaseUrl, p.FirmId, chargeRequest.ChargeId, chargeRequest.PaymentID)
 	log.Debug().Msgf("Confirming payment with url: %s", url)
-	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		writeJSONErrorMessage(w, "Server error", 500)
 		return

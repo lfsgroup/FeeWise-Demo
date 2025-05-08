@@ -87,22 +87,34 @@ type CreatePaymentTokenResponse struct {
 }
 
 type CreateChargeRequest struct {
-	PaymentMethodID     string          `json:"paymentMethodID"`
-	Amount              decimal.Decimal `json:"amount"`
-	SettlementAccountID string          `json:"settlement_account_id"`
-	Debtor              Debtor          `json:"debtor,omitempty"`
-	ChargeId            string          `json:"charge_id,omitempty"`
-	PaymentID           string          `json:"payment_id,omitempty"`
+	Charge struct {
+		PaymentMethodID         string          `json:"paymentMethodID"`
+		Amount                  decimal.Decimal `json:"amount"`
+		SettlementAccountID     string          `json:"settlement_account_id"`
+		Debtor                  Debtor          `json:"debtor,omitempty"`
+		ChargeId                string          `json:"charge_id,omitempty"`
+		PaymentID               string          `json:"payment_id,omitempty"`
+		SurchargeChoiceOverride string          `json:"surcharge_choice_override,omitempty"`
+	}
+}
+
+type ConfirmChargeRequest struct {
+	ChargeId  string `json:"charge_id,omitempty"`
+	PaymentID string `json:"payment_id,omitempty"`
 }
 
 type FeeWiseChargeRequest struct {
-	Amount              string   `json:"amount"`
-	SettlementAccountId string   `json:"settlement_account_id"`
-	Description         string   `json:"description"`
-	Debtor              Debtor   `json:"debtor,omitempty"`
-	Notes               []string `json:"notes,omitempty"`
+	Charge ChargeRequest `json:"charge,omitempty"`
 }
 
+type ChargeRequest struct {
+	Amount                  string   `json:"amount"`
+	SettlementAccountId     string   `json:"settlement_account_id"`
+	Description             string   `json:"description"`
+	Debtor                  Debtor   `json:"debtor,omitempty"`
+	Notes                   []string `json:"notes,omitempty"`
+	SurchargeChoiceOverride string   `json:"surcharge_choice_override,omitempty"`
+}
 type PaymentReviewResponse struct {
 	PaymentReview CreateChargeResponse `json:"payment_review"`
 }

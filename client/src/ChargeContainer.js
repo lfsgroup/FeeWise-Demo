@@ -58,10 +58,13 @@ function ChargeContainer() {
     setPaymentResponse('');
     setIsSubmitting(true);
     const payload = {
-      debtor: selectedCustomer.debtor,
-      paymentMethodId: selectedPaymentMethod,
-      amount,
-      settlement_account_id: selectedAccount,
+      charge: {
+        debtor: selectedCustomer.debtor,
+        paymentMethodId: selectedPaymentMethod,
+        amount,
+        settlement_account_id: selectedAccount,
+        surcharge_choice_override: 'Customer',
+      },
     };
     fetch(`${BASE_URL}/create-charge`, {
       method: 'POST',
