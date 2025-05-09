@@ -107,10 +107,12 @@ const CaptureAndChargeContainer = () => {
   const chargePaymentMethod = (paymentMethodId) => {
     setDisableSubmit(true);
     const payload = {
-      debtor: customer.debtor,
-      paymentMethodId: paymentMethodId,
-      amount,
-      settlement_account_id: selectedAccount,
+      charge: {
+        debtor: customer.debtor,
+        paymentMethodId: paymentMethodId,
+        amount,
+        settlement_account_id: selectedAccount,
+      },
     };
     try {
       fetch(`${BASE_URL}/create-charge`, {
