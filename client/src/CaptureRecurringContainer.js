@@ -89,7 +89,6 @@ const CaptureRecurringContainer = ({ gotoCustomerDetails }) => {
   useEffect(() => {
     try {
       new URL(feeWiseUri);
-      console.log({ feeWiseUri });
       mountFeeWise(feeWiseUri);
     } catch (error) {
       console.log('no uri loaded');
