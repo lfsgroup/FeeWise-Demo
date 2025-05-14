@@ -6,22 +6,17 @@ import { ROUTE_CAPTURE_RECURRING, ROUTE_CAPTURE_AND_CHARGE, ROUTE_NEW_CUSTOMER }
 import Loader from './loader';
 import CaptureRecurringContainer from './CaptureRecurringContainer';
 import CaptureAndChargeContainer from './CaptureAndChargeContainer';
+import ChargeContainer from './ChargeContainer';
 import { BASE_URL } from './baseUrl';
 
 function Home() {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
-  const [bankAccounts, setBankAccounts] = useState([]);
   const dispatchSelectedCustomer = useContext(SelectedCustomerDispatchContext);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [selectedAccount, setSelectedAccount] = useState('');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [amount, setAmount] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [disableSubmit, setDisableSubmit] = useState(false);
-  const [paymentResponse, setPaymentResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('charge'); // charge, add-payment-method, single-charge
+  const [selectedTab, setSelectedTab] = useState('single-charge'); // charge, add-payment-method, single-charge
+
   const fetchCustomers = () => {
     setIsLoading(true);
     fetch(`${BASE_URL}/customers`).then(async (r) => {
@@ -30,27 +25,12 @@ function Home() {
       setIsLoading(false);
     });
   };
-
-  const fetchAccounts = () => {
-    fetch(`${BASE_URL}/accounts`).then(async (r) => {
-      const accounts = await r.json();
-      const accountsArr = accounts.office_accounts.concat(accounts.trust_accounts);
-
-      setBankAccounts(accountsArr);
-    });
-  };
-
-  useEffect(() => {
-    setDisableSubmit(!amount || !selectedAccount || !selectedPaymentMethod || isSubmitting);
-  }, [amount, selectedAccount, selectedPaymentMethod, isSubmitting]);
-
   useEffect(() => {
     dispatchSelectedCustomer({
       type: 'update',
       customer: undefined,
     });
     fetchCustomers();
-    fetchAccounts();
   }, [dispatchSelectedCustomer]);
 
   const handleSelectedCustomerId = (e) => {
@@ -62,61 +42,17 @@ function Home() {
     setSelectedCustomer(filteredCustomer[0]);
   };
 
-  const handleSelectedAccount = (e) => {
-    setSelectedAccount(e.target.value);
-  };
-
-  const handleSelectedPaymentMethod = (e) => {
-    setSelectedPaymentMethod(e.target.value);
-  };
-
-  const handleAmountChange = (e) => {
-    setAmount(e.target.value);
-  };
-
-  const handleRouteCaptureRecurring = () => {
-    navigate(ROUTE_CAPTURE_RECURRING);
-  };
-
-  const handleRouteCharge = () => {
-    navigate(ROUTE_CAPTURE_AND_CHARGE);
-  };
-
   const handleAddNewCustomer = () => {
     navigate(ROUTE_NEW_CUSTOMER);
   };
 
-  const handleChargePaymentMethod = () => {
-    setIsSubmitting(true);
-    const payload = {
-      debtor: selectedCustomer.debtor,
-      paymentMethodId: selectedPaymentMethod,
-      amount,
-      settlementAccountId: selectedAccount,
-    };
-    fetch(`${BASE_URL}/create-charge`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then(async (r) => {
-      const response = await r.json();
-      setIsSubmitting(false);
-      setPaymentResponse(response);
-      navigate('/');
-    });
-  };
-
   const cancelSelection = () => {
     setSelectedCustomer(null);
-    setPaymentResponse('');
   };
 
   const selectTab = (tabName) => {
     return () => {
       setSelectedTab(tabName);
-      setPaymentResponse('');
     };
   };
 
@@ -182,79 +118,9 @@ function Home() {
               </span>
             </div>
 
-            {selectedTab === 'charge' && (
-              <div className="sb-form payment-method-form">
-                <h2 className="sb-form-title">
-                  {selectedCustomer?.debtor?.first_name} {selectedCustomer?.debtor?.last_name}
-                </h2>
-                <p className="sb-form-titleInfo">Select payment method, account, and amount to charge</p>
-                {!selectedCustomer.payment_methods ? (
-                  <div>
-                    <p>No payment methods!!</p>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="label">
-                      <b>Payment method</b>
-                      <select onChange={handleSelectedPaymentMethod}>
-                        <option key="default" value="default">
-                          Select payment method...
-                        </option>
-                        {selectedCustomer.payment_methods.map((paymentMethod) => (
-                          <option key={paymentMethod.payment_token} value={paymentMethod.payment_token}>
-                            {paymentMethod.card
-                              ? `${paymentMethod.card.scheme} ending in ${paymentMethod.card.scheme_partial_number}`
-                              : `${paymentMethod.debit.country} bank account ending in ${paymentMethod.debit.account_partial_number}`}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="label">
-                      <b>Settlement Account</b>
-
-                      <select onChange={handleSelectedAccount}>
-                        <option key="default" value="default">
-                          Select bank account...
-                        </option>
-                        {bankAccounts.map((account) => (
-                          <option key={account.account_id} value={account.account_id}>
-                            {account.account_name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label>
-                      <b>Amount</b>
-                      <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
-                    </label>
-                    <button onClick={handleChargePaymentMethod} disabled={disableSubmit}>
-                      Charge ${amount || 0} now
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {selectedTab === 'add-payment-method' && (
-              <div>
-                <CaptureRecurringContainer />
-              </div>
-            )}
-            {selectedTab === 'single-charge' && (
-              <div>
-                <CaptureAndChargeContainer />
-              </div>
-            )}
-          </div>
-        )}
-
-        {paymentResponse && (
-          <div className="payment-result sb-result-box">
-            <p>Charge Result: successfully charged</p>
-            <code>
-              <pre>{JSON.stringify(paymentResponse, undefined, 2)}</pre>
-            </code>
+            {selectedTab === 'charge' && <ChargeContainer />}
+            {selectedTab === 'add-payment-method' && <CaptureRecurringContainer />}
+            {selectedTab === 'single-charge' && <CaptureAndChargeContainer />}
           </div>
         )}
       </div>

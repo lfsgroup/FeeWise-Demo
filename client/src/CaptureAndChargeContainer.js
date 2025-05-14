@@ -3,6 +3,7 @@ import Capture from './Capture';
 import { useContext, useEffect, useState } from 'react';
 
 import { SelectedCustomerContext } from './context/customerContext';
+import ReviewModal from './review-modal';
 import { useNavigate } from 'react-router-dom';
 import { ROUTE_NEW_CUSTOMER } from './routes';
 import { BASE_URL } from './baseUrl';
@@ -22,27 +23,81 @@ const CaptureAndChargeContainer = () => {
   const [feeWiseValid, setFeeWiseValid] = useState(false);
   //change this to test different dynamic styles
   const feeWiseOptions = hostedFieldStyles.paymentPortal;
-
+  const [hasSurcharge, setHasSurcharge] = useState(false);
   const handleSelectedAccount = (e) => {
     setSelectedAccount(e.target.value);
   };
-
+  const [disableReview, setDisableReview] = useState(false);
   const handleAmountChange = (e) => {
     setAmount(e.target.value);
   };
 
-  const handleFeeWiseSubmit = async () => {
+  const [reviewReady, setReviewReady] = useState(false);
+  let capture = null;
+  const [paymentToken, setPaymentToken] = useState('');
+  const [reviewData, setReviewData] = useState(null);
+  const feewiseSubmit = async () => {
     setDisableSubmit(true);
     try {
       const response = await feeWiseApi?.submit();
       chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
+      setPaymentToken(response.response.paymentMethodDetails.paymentToken);
       setCaptureResponse(response);
     } catch (error) {
-      console.log(error);
-      setCaptureResponse(error);
-    }
+      console.error(error);
 
-    setDisableSubmit(false);
+      setCaptureResponse(error);
+    } finally {
+      setDisableSubmit(false);
+    }
+  };
+  const reviewSubmit = async () => {
+    setDisableSubmit(true);
+    try {
+      const response = await feeWiseApi?.submit();
+      setPaymentToken(response.response.paymentMethodDetails.paymentToken);
+      chargePaymentMethod(response.response.paymentMethodDetails.paymentToken);
+    } catch (error) {
+      console.error(error);
+      setCaptureResponse(error);
+    } finally {
+      setDisableSubmit(false);
+    }
+  };
+  const confirmPayment = async (payload) => {
+    fetch(`${BASE_URL}/confirm-payment`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (r) => {
+        const response = await r.json();
+        setCaptureResponse(response);
+        setChargeResponse(response);
+        setReviewReady(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  const handleFeeWiseSubmit = () => {
+    if (hasSurcharge) {
+      if (!reviewReady) {
+        reviewSubmit();
+      } else {
+        // submit it
+        const payload = {
+          charge_id: reviewData.charge.charge_id,
+          payment_id: reviewData.payment_details.payment_id,
+        };
+
+        confirmPayment(payload);
+      }
+    } else {
+      feewiseSubmit();
+    }
   };
 
   const cancelAddNew = async () => {
@@ -52,22 +107,40 @@ const CaptureAndChargeContainer = () => {
   const chargePaymentMethod = (paymentMethodId) => {
     setDisableSubmit(true);
     const payload = {
-      debtor: customer.debtor,
-      paymentMethodId: paymentMethodId,
-      amount,
-      settlementAccountId: selectedAccount,
-    };
-    fetch(`${BASE_URL}/create-charge`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
+      charge: {
+        debtor: customer.debtor,
+        paymentMethodId: paymentMethodId,
+        amount,
+        settlement_account_id: selectedAccount,
       },
-    }).then(async (r) => {
-      const response = await r.json();
-      setChargeResponse(response);
-    });
-    setDisableSubmit(false);
+    };
+    try {
+      fetch(`${BASE_URL}/create-charge`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(async (r) => {
+          const response = await r.json();
+          if (r.status === 402) {
+            // payment review required
+            setReviewReady(true);
+            setReviewData(response?.payment_review);
+          } else {
+            setChargeResponse(response);
+            setCaptureResponse(response?.payment_review);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      setDisableSubmit(false);
+    } catch (err) {
+      console.error(err);
+      setCaptureResponse(err);
+    }
   };
 
   const mountFeeWise = async (captureUri) => {
@@ -100,13 +173,18 @@ const CaptureAndChargeContainer = () => {
 
     fetch(`${BASE_URL}/create-payment-token`, {
       method: 'POST',
-      body: JSON.stringify({ debtor: { ...request.debtor }, token_type: 'MultiUse', payment_methods: ["Card", "DirectDebit"], }),
+      body: JSON.stringify({
+        debtor: { ...request.debtor },
+        token_type: 'MultiUse',
+        payment_methods: ['Card', 'DirectDebit'],
+      }),
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     }).then(async (r) => {
       response = await r.json();
-      setFeeWiseUri(response.capture_uri)
+      setHasSurcharge(true);
+      setFeeWiseUri(response.capture_uri);
     });
   };
   useEffect(() => {
@@ -138,6 +216,11 @@ const CaptureAndChargeContainer = () => {
     }
   }, [feeWiseUri]);
 
+  const cancelReview = () => {
+    setReviewReady(false);
+    createPaymentToken(customerStore.customer);
+  };
+
   return (
     <div>
       <div className="sb-form">
@@ -147,30 +230,40 @@ const CaptureAndChargeContainer = () => {
         <div>
           <label className="label">
             Settlement Account
-          <select onChange={handleSelectedAccount}>
-            <option key="default" value="default">
-              Select bank account...
-            </option>
-            {bankAccounts.map((account) => (
-              <option key={account.account_id} value={account.account_id}>
-                {account.account_name}
+            <select onChange={handleSelectedAccount}>
+              <option key="default" value="default">
+                Select bank account...
               </option>
-            ))}
-          </select>
+              {bankAccounts.map((account) => (
+                <option key={account.account_id} value={account.account_id}>
+                  {account.account_name}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label>
-          Amount:
-          <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
+            Amount:
+            <input type="number" step="0.01" placeholder="0.00" onChange={handleAmountChange}></input>
           </label>
         </div>
-      <Capture
-        disableSubmit={disableSubmit}
-        captureResponse={captureResponse}
-        chargeResponse={chargeResponse}
-        handleFeeWiseSubmit={handleFeeWiseSubmit}
+        {hasSurcharge && (
+          <div className="sb-surcharge-info">
+            <span className="sb-info-icon">!</span>A surcharge may apply to certain card payments. Any applicable fees
+            can be reviewed before submitting payment.
+          </div>
+        )}
+        {reviewReady && (
+          <ReviewModal reviewData={reviewData} cancelReview={cancelReview} handleFeeWiseSubmit={handleFeeWiseSubmit} />
+        )}
+        <Capture
+          disableSubmit={disableSubmit}
+          captureResponse={captureResponse}
+          chargeResponse={chargeResponse}
+          handleFeeWiseSubmit={handleFeeWiseSubmit}
+          review={hasSurcharge}
         />
-        </div>
+      </div>
     </div>
   );
 };
